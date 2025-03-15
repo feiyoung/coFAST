@@ -1,6 +1,6 @@
 Package: coFAST
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Spatially-Aware Cell Clustering Algorithm With Cluster Significant Assessment
 Version: 0.1.0
 Date: 2025-03-14
 Authors@R: 
@@ -11,14 +11,22 @@ Authors@R:
       person(given = "Xiao",
              family = "Zhang",
              role = c("aut")),
+      person(given = "Yi",
+             family = "Yang",
+             role = "aut"),
+      person(given = "Peng",
+             family = "Xie",
+             role = c("aut")),
+      person(given = "Chengqi",
+             family = "Lin",
+             role = "aut"),
       person(given = "Jin",
              family = "Liu",
              role = "aut"))
-Author: Wei Liu [aut, cre], Xiao Zhang [aut], Jin Liu [aut]
+Author: Wei Liu [aut, cre], Xiao Zhang [aut],  Yi Yang [aut], Peng Xie [aut], Chengqi Lin [aut], Jin Liu [aut]
 Maintainer: Wei Liu <liuweideng@gmail.com>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Description: coFAST is a spatially-aware cell clustering algorithm with cluster significant assessment. It comprises four key modules: spatially-aware cell-gene co-embedding, cell clustering, signature gene identification, and cluster significant assessment.
+License: GPL-3
 Depends: 
     R (>= 4.0.0),
 Imports: 
@@ -31,6 +39,7 @@ Imports:
     PRECAST,
     ProFAST,
     Matrix,
+    dplyr,
     Seurat,
     stats,
     ProFAST,

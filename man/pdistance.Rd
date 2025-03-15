@@ -4,12 +4,12 @@
 \alias{pdistance}
 \title{Calculate the cell-feature distance matrix}
 \usage{
-pdistance(object, reduction = "fast", assay.name = "distce", eta = 1e-10)
+pdistance(object, reduction = "cofast", assay.name = "distce", eta = 1e-10)
 }
 \arguments{
 \item{object}{a Seurat object.}
 
-\item{reduction}{a opstional string, dimensional reduction name, `fast` by default.}
+\item{reduction}{a opstional string, dimensional reduction name, `cofast` by default.}
 
 \item{assay.name}{a opstional string, specify the new generated assay name, `distce` by default.}
 

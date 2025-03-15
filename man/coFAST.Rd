@@ -11,7 +11,7 @@ coFAST(
   slot = "data",
   nfeatures = 2000,
   q = 10,
-  reduction.name = "fast",
+  reduction.name = "cofast",
   var.features = NULL,
   ...
 )
@@ -29,7 +29,7 @@ coFAST(
 
 \item{q}{an optional positive integer, specify the dimension of low dimensional embeddings to compute and store. Default is 10.}
 
-\item{reduction.name}{an optional string, dimensional reduction name, `fast` by default.}
+\item{reduction.name}{an optional string, dimensional reduction name, `cofast` by default.}
 
 \item{var.features}{an optional string vector, specify the variable features, used to calculate cell embedding.}
 
@@ -42,7 +42,7 @@ Run cell-feature coembedding for SRT data based on FAST model.
 data(CosMx_subset)
 pos <- as.matrix(CosMx_subset@meta.data[,c("x", "y")])
 Adj_sp <- AddAdj(pos)
-# Here, we set maxIter = 3 for fast computation and demonstration.
+# Here, we set maxIter = 3 for cofast computation and demonstration.
 CosMx_subset <- coFAST(CosMx_subset, Adj_sp = Adj_sp, maxIter=3)
 
 }

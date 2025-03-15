@@ -5,7 +5,7 @@
 # pkgdown::build_site()
 # pkgdown::build_home()
 # pkgdown::build_reference()
-# pkgdown::build_article("FASTsimu") #FASTsimu; pbmc3k; CosMx;FASTdlpfc
+# pkgdown::build_article("CosMx") # pbmc3k; CosMx
 # pkgdown::build_article("FASTdlpfc2")
 
 
@@ -444,7 +444,7 @@ NCFM <- function(
 #' @importFrom Matrix t
 #' @importFrom irlba irlba
 Factor_nc <- function(
-  X_slot, X_data, q = 10, reduction.name = "Fac", weighted = FALSE, features = NULL) {
+  X_slot, X_data, q = 10, reduction.name = "cofast", weighted = FALSE, features = NULL) {
   if (q <= 1) {
     stop("q must be greater than or equal to 2!")
   }
@@ -489,7 +489,7 @@ Factor_nc <- function(
 #' @param slot an optional string, the name of slot used.
 #' @param nfeatures an optional postive integer, the number of features to select as top variable features. Default is 2000.
 #' @param q an optional positive integer, specify the dimension of low dimensional embeddings to compute and store. Default is 10.
-#' @param reduction.name an optional string, dimensional reduction name, `fast` by default.
+#' @param reduction.name an optional string, dimensional reduction name, `cofast` by default.
 #' @param var.features an optional string vector, specify the variable features, used to calculate cell embedding.
 #' @param ... Other argument passed  to the \code{\link{FAST_run}}.
 #'
@@ -501,12 +501,12 @@ Factor_nc <- function(
 #' data(CosMx_subset)
 #' pos <- as.matrix(CosMx_subset@meta.data[,c("x", "y")])
 #' Adj_sp <- AddAdj(pos)
-#' # Here, we set maxIter = 3 for fast computation and demonstration.
+#' # Here, we set maxIter = 3 for cofast computation and demonstration.
 #' CosMx_subset <- coFAST(CosMx_subset, Adj_sp = Adj_sp, maxIter=3)
 #'
 coFAST <- function(
   object, Adj_sp, assay = NULL, slot = "data", nfeatures = 2000, q = 10,
-  reduction.name = "fast", var.features = NULL, ...) {
+  reduction.name = "cofast", var.features = NULL, ...) {
 
 
   if (is.null(assay)) {
@@ -536,7 +536,7 @@ coFAST <- function(
     X_slot = X_all[var.features,], X_data = X_data, Adj_sp = Adj_sp, q = q, var.features = NULL, ...)
   cellsCoordinates <- res$cellsCoordinates
   featuresCoordinates <- res$featuresCoordinates
-  colnames(cellsCoordinates) <- paste0("fast", 1:q)
+  colnames(cellsCoordinates) <- paste0("cofast", 1:q)
   .logDiffTime(sprintf(paste0("%s Finish CoFAST"), "*****"), t1 = tstart, verbose=TRUE)
   feature_names <- intersect(row.names(featuresCoordinates), rownames(object))
   object@reductions[[reduction.name]] <- Seurat::CreateDimReducObject(
@@ -586,7 +586,7 @@ pdistance.matrix <- function (Ar, Br, eta = 1e-10) {
 #'Calculate the cell-feature distance matrix
 #' @description  Calculate the cell-feature distance matrix based on coembeddings.
 #' @param object a Seurat object.
-#' @param reduction a opstional string, dimensional reduction name, `fast` by default.
+#' @param reduction a opstional string, dimensional reduction name, `cofast` by default.
 #' @param assay.name a opstional string, specify the new generated assay name, `distce` by default.
 #' @param eta an optional postive real, a quantity to avoid numerical errors. 1e-10 by default.
 #'
@@ -601,7 +601,7 @@ pdistance.matrix <- function (Ar, Br, eta = 1e-10) {
 #' pbmc3k_subset <- NCFM(pbmc3k_subset)
 #' pbmc3k_subset <- pdistance(pbmc3k_subset, "ncfm")
 pdistance <- function(
-  object, reduction = "fast", assay.name = "distce", eta = 1e-10) {
+  object, reduction = "cofast", assay.name = "distce", eta = 1e-10) {
   if(!inherits(object, "Seurat")) stop("pdistance: object must be a Seurat object!")
   f_ebd <- Seurat::Loadings(object, reduction)
   c_ebd <- Seurat::Embeddings(object, reduction)
@@ -611,6 +611,72 @@ pdistance <- function(
   object@assays[[assay.name]]@misc$reduction <- reduction
   object@assays[[assay.name]]@key <- paste0(assay.name, "_")
   object
+}
+
+
+
+# Cell/spot clustering----------------------------------------------------
+search.res.louvain <- function(seu, K, res.start=0.01, res.end=2, step = 0.02){
+  # res.start=0.1; res.end=2; step = 0.1
+  res.vec <- seq(res.start, res.end, by=step)
+  res.use <- NULL
+  for(res in res.vec){
+    seu <- FindClusters(seu, resolution = res, verbose=FALSE)
+    K1 <- length(unique(seu$seurat_clusters))
+    message("Current resolution is: ", res, ", #clusters is: ", K1)
+    if(K1 >= K){
+      res.use <- res
+      break
+    }
+
+  }
+  if(K1 > K) warning("It does not achieve K clusters if using this res; consider decreasing res.end and step!")
+  if(K1<K) warning("It does not achieve K clusters if using this res; consider increasing res.end!")
+  return(res.use)
+}
+
+
+#' Find clusters for SRT data
+#' @description Identify clusters of spots by a shared nearest neighbor (SNN) modularity optimization based on coFAST's embeddings.
+#' @param df.list a list that is obtained by the function \code{\link{find.signature.genes}}.
+#' @param ntop an optional positive integer, specify the how many top signature genes extracted, default as 5.
+#' @param expr.prop.cutoff an optional postive real ranging from 0 to 1,  specify cutoff of expression proportion of  features, default as 0.1.
+#' @return return  a `data.frame` object with four columns: `distance`,`expr.prop`, `label` and `gene`.
+#' @details Using this funciton, we obtain the top signature genes and organize them into a data.frame. The `row.names` are gene names.
+#' The colname `distance` means the distance between gene (i.e., VPREB3) and cells with the specific cell type (i.e., B cell),
+#'  which is calculated based on the coembedding of genes and cells in the coembedding space. The distance is smaller, the association between gene and the cell type is stronger.
+#'  The colname `expr.prop` represents the expression proportion of the gene (i.e., VPREB3) within the cell type (i.e., B cell).
+#'  The colname `label` means the cell types and colname `gene` denotes the gene name.
+#'  By the data.frame object, we know `VPREB3` is the one of the top signature gene of B cell.
+#' @seealso None
+#' @references None
+#' @export
+#' @importFrom  pbapply pblapply
+#' @importFrom utils head
+#' @examples
+#' library(Seurat)
+#' data(pbmc3k_subset)
+#' pbmc3k_subset <- pdistance(pbmc3k_subset, reduction='ncfm')
+#' df_list_rna <- find.signature.genes(pbmc3k_subset)
+#' dat.sig <- get.top.signature.dat(df_list_rna, ntop=5)
+#' head(dat.sig)
+
+AddCluster <- function(seu, reduction='cofast',cluster.name = 'cofast.cluster', res=0.8,  K=NULL, res.start=0.2, res.end=2, step=0.02){
+
+  # res.start=0.2; res.end=2; step=0.02
+  q.use <- ncol(Embeddings(seu, reduction='cofast'))
+  seu <- FindNeighbors(seu, reduction = "cofast", dims = 1:q.use)
+  if(is.null(K)){
+    seu <- FindClusters(seu, resolution = res, cluster.name = cluster.name)
+  }else{
+    message("Search the resolution to ensure number of cluster is ", K, "...")
+    res.use <- search.res.louvain(seu, K=K, res.start=res.start, res.end=res.end, step=step)
+    seu <- FindClusters(seu, resolution = res.use, cluster.name = cluster.name)
+  }
+  seu@meta.data[,cluster.name] <- factor(as.integer(seu@meta.data[,cluster.name]))
+  Idents(seu) <- cluster.name
+
+  return(seu)
 }
 
 
