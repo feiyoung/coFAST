@@ -1,4 +1,6 @@
 
+
+
 # Cluster assessment --------------------------------------------------
 
 #' Add the spatial coordinates to the reduction slot
@@ -14,6 +16,7 @@
 #' @importFrom Seurat CreateDimReducObject
 #' @examples
 #' data(CosMx_subset)
+#' library(Seurat)
 #' Addcoord2embed(CosMx_subset, coord.name = c("x", "y"))
 #'
 #'
@@ -41,12 +44,14 @@ Addcoord2embed <- function(seu, coord.name,  assay = "RNA"){
 #' @export
 #' @importFrom Seurat Idents
 #' @examples
-#' data(CosMx_subset)
 #' library(Seurat)
+#' data(CosMx_subset)
 #' CosMx_subset <- Addcoord2embed(CosMx_subset, coord.name = c("x", "y"))
 #' Idents(CosMx_subset) <- 'cell_type'
+#' \donttest{
 #' dat.sp.score <- AggregationScore(CosMx_subset, reduction.name = 'Spatial')
 #' print(dat.sp.score)
+#' }
 #'
 AggregationScore <- function(seu, reduction.name='cofast', random.seed=1){
 
@@ -104,13 +109,12 @@ pathway.rgTest <- function (coembed, genes.use, gene.set.list, gene.set.cutoff =
 #' @importFrom ade4 mstree
 #' @importFrom stats as.dist
 kmst <- function(y=NULL, dis=NULL, k=1){
-  require(ade4)
+  # require(ade4)
   if (is.null(dis) && is.null(y)){
-    cat("Please input data or the distance matrix!\n")
-    return(0)
+    stop("Please input data or the distance matrix!\n")
   }
   if (is.null(dis)) dis = pdistance.mat(y, y)
-  mymst = ade4::mstree(stats::as.dist(dis),k)
+  mymst = mstree(as.dist(dis),k)
   cbind(mymst[,1], mymst[,2])
 }
 #' @useDynLib coFAST, .registration = TRUE
@@ -122,6 +126,10 @@ pdistance.mat <- function (Ar, Br, eta = 1e-10){
 }
 
 #' @importFrom dplyr `%>%`
+#' @importFrom furrr furrr_options
+#' @import progress
+#' @importFrom stats p.adjust
+#' @importFrom utils setTxtProgressBar txtProgressBar
 pathway.rgTest.body.full <- function (E, genes.use, gene.set.list.cut, test.type = list("ori",
                                                                                         "gen", "wei", "max"), wei.fun = c("weiMax", "weiGeo", "weiArith"),
                                       perm.num = 0, progress_bar = FALSE, ncores = 10, eta = 1e-04,
@@ -157,15 +165,14 @@ pathway.rgTest.body.full <- function (E, genes.use, gene.set.list.cut, test.type
     unlist(test_res)
   }
   if (parallel) {
-    library(furrr)
-    library(future)
+    # library(furrr)
+    # library(future)
     plan("multicore", workers = ncores)
     pb <- progress::progress_bar$new(format = "[:bar] :percent ETA: :eta")
     res <- idx.list %>% future_map(test_fun, .progress = TRUE,
-                                   .options = furrr_options(seed = TRUE))
+                                   .options = furrr::furrr_options(seed = TRUE))
     res <- t(Reduce(cbind, res))
-  }
-  else {
+  }else {
     res <- t(pbapply::pbsapply(idx.list, test_fun))
   }
   rownames(res) <- names(gene.set.list.cut)
@@ -220,12 +227,12 @@ pathway.rgTest.body <- function (E, genes.use, gene.set.list.cut, test.type = li
     unlist(test_res)
   }
   if (parallel) {
-    library(furrr)
-    library(future)
+    # library(furrr)
+    # library(future)
     plan("multicore", workers = ncores)
     pb <- progress::progress_bar$new(format = "[:bar] :percent ETA: :eta")
     res <- idx.list %>% future_map(test_fun, .progress = TRUE,
-                                   .options = furrr_options(seed = TRUE))
+                                   .options = furrr::furrr_options(seed = TRUE))
     res <- t(Reduce(cbind, res))
   }
   else {

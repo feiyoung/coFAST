@@ -33,12 +33,16 @@ coFAST(
 
 \item{var.features}{an optional string vector, specify the variable features, used to calculate cell embedding.}
 
-\item{...}{Other argument passed  to the \code{\link{FAST_run}}.}
+\item{...}{Other argument passed  to the \code{\link[ProFAST]{FAST_run}}.}
+}
+\value{
+return a revised Seurat object with a new reduction slot reduction.name obtained by coFAST co-embedding, where default reduction.name is `cofast`.
 }
 \description{
 Run cell-feature coembedding for SRT data based on FAST model.
 }
 \examples{
+library(Seurat)
 data(CosMx_subset)
 pos <- as.matrix(CosMx_subset@meta.data[,c("x", "y")])
 Adj_sp <- AddAdj(pos)

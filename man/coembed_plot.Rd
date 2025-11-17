@@ -63,6 +63,7 @@ Graph  output of a dimensional reduction technique on a 2D scatter plot where ea
 None
 }
 \examples{
+library(Seurat)
 data(pbmc3k_subset)
 data(top5_signatures)
 coembed_plot(pbmc3k_subset, reduction = "UMAPsig",

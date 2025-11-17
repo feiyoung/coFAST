@@ -1,6 +1,6 @@
 # generate man files
 # devtools::document()
-# R CMD check --as-cran ProFAST_1.4.tar.gz
+# R CMD check --as-cran coFAST_0.1.0.tar.gz
 ## usethis::use_data(pbmc3k_subset)
 # pkgdown::build_site()
 # pkgdown::build_home()
@@ -75,7 +75,7 @@ get_varfeature_fromSeurat <- function(seu, assay=NULL){
 #' @param platform a string, specify the platform of the provided data, default as "Others". There are more platforms to be chosen, including "Visuim", "ST" and "Others" ("Others" represents the other SRT platforms except for 'Visium' and 'ST')
 #'  The platform helps to calculate the adjacency matrix by defining the neighborhoods when type="fixed_distance" is chosen.
 #' @param neighbors an optional postive integer,  specify how many neighbors used in calculation, default as 6.
-#' @param ... Other arguments passed to \code{\link{getAdj_auto}}.
+#' @param ... Other arguments passed to \code{\link[DR.SC]{getAdj_auto}}.
 #' @return return a sparse matrix, representing the adjacency matrix.
 #' @details When the type = "fixed_distance", then the spots within the Euclidean distance cutoffs from one spot are regarded as the neighbors of this spot. When the type = "fixed_number", the K-nearest spots are regarded as the neighbors of each spot.
 #'
@@ -102,12 +102,12 @@ AddAdj <- function(pos, type="fixed_distance", platform=c("Others","Visium", "ST
 
     if(tolower(type)=='fixed_distance'){
       if(tolower(platform) %in% c("st", "visium")){
-        Adj <-  PRECAST::getAdj_reg(pos, platform=platform)
+        Adj <-  getAdj_reg(pos, platform=platform)
       }else{
         Adj <- getAdj_auto(pos, lower.med=neighbors-2, upper.med=neighbors+2,...)
       }
     }else if (tolower(type) == "fixed_number") {
-      Adj <- PRECAST::getAdj_fixedNumber(pos, number=neighbors)
+      Adj <- getAdj_fixedNumber(pos, number=neighbors)
     } else {
       stop("AddAdj: Unsupported adjacency  type \"", type, "\".")
     }
@@ -390,6 +390,7 @@ diagnostic.cor.eigs.Seurat <- function(
 #' @param weighted an optional logical value, specify whether use weighted method.
 #' @param var.features an optional string vector, specify the variable features used to calculate cell embedding.
 #'
+#' @return return a revised Seurat object with a new reduction slot reduction.name obtained by NCFM co-embedding method, where reduction.name is default as `ncfm`.
 #' @rdname NCFM
 #'
 #' @importFrom Seurat DefaultAssay GetAssayData CreateDimReducObject FindVariableFeatures
@@ -491,13 +492,15 @@ Factor_nc <- function(
 #' @param q an optional positive integer, specify the dimension of low dimensional embeddings to compute and store. Default is 10.
 #' @param reduction.name an optional string, dimensional reduction name, `cofast` by default.
 #' @param var.features an optional string vector, specify the variable features, used to calculate cell embedding.
-#' @param ... Other argument passed  to the \code{\link{FAST_run}}.
+#' @param ... Other argument passed  to the \code{\link[ProFAST]{FAST_run}}.
 #'
+#' @return return a revised Seurat object with a new reduction slot reduction.name obtained by coFAST co-embedding, where default reduction.name is `cofast`.
 #' @importFrom Seurat DefaultAssay GetAssayData CreateDimReducObject
 #'
 #' @export
 #'
 #' @examples
+#' library(Seurat)
 #' data(CosMx_subset)
 #' pos <- as.matrix(CosMx_subset@meta.data[,c("x", "y")])
 #' Adj_sp <- AddAdj(pos)
@@ -586,10 +589,11 @@ pdistance.matrix <- function (Ar, Br, eta = 1e-10) {
 #'Calculate the cell-feature distance matrix
 #' @description  Calculate the cell-feature distance matrix based on coembeddings.
 #' @param object a Seurat object.
-#' @param reduction a opstional string, dimensional reduction name, `cofast` by default.
-#' @param assay.name a opstional string, specify the new generated assay name, `distce` by default.
-#' @param eta an optional postive real, a quantity to avoid numerical errors. 1e-10 by default.
+#' @param reduction a optional string, dimensional reduction name, `cofast` by default.
+#' @param assay.name a optional string, specify the new generated assay name, `distce` by default.
+#' @param eta an optional positive real, a quantity to avoid numerical errors. 1e-10 by default.
 #'
+#' @return return a revised Seurat object with a assay slot `assay.name`.
 #' @details This function calculate the distance matrix between cells/spots and features, and then put the distance matrix in a new generated assay. This
 #' distance matrix will be used in the siganture gene identification.
 #' @importFrom Seurat Loadings Embeddings CreateAssayObject
@@ -616,6 +620,7 @@ pdistance <- function(
 
 
 # Cell/spot clustering----------------------------------------------------
+#' @importFrom Seurat FindClusters `Idents<-` FindNeighbors
 search.res.louvain <- function(seu, K, res.start=0.01, res.end=2, step = 0.02){
   # res.start=0.1; res.end=2; step = 0.1
   res.vec <- seq(res.start, res.end, by=step)
@@ -638,16 +643,16 @@ search.res.louvain <- function(seu, K, res.start=0.01, res.end=2, step = 0.02){
 
 #' Find clusters for SRT data
 #' @description Identify clusters of spots by a shared nearest neighbor (SNN) modularity optimization based on coFAST's embeddings.
-#' @param df.list a list that is obtained by the function \code{\link{find.signature.genes}}.
-#' @param ntop an optional positive integer, specify the how many top signature genes extracted, default as 5.
-#' @param expr.prop.cutoff an optional postive real ranging from 0 to 1,  specify cutoff of expression proportion of  features, default as 0.1.
-#' @return return  a `data.frame` object with four columns: `distance`,`expr.prop`, `label` and `gene`.
-#' @details Using this funciton, we obtain the top signature genes and organize them into a data.frame. The `row.names` are gene names.
-#' The colname `distance` means the distance between gene (i.e., VPREB3) and cells with the specific cell type (i.e., B cell),
-#'  which is calculated based on the coembedding of genes and cells in the coembedding space. The distance is smaller, the association between gene and the cell type is stronger.
-#'  The colname `expr.prop` represents the expression proportion of the gene (i.e., VPREB3) within the cell type (i.e., B cell).
-#'  The colname `label` means the cell types and colname `gene` denotes the gene name.
-#'  By the data.frame object, we know `VPREB3` is the one of the top signature gene of B cell.
+#' @param seu a Seurat object.
+#' @param reduction a optional string, dimensional reduction name, `cofast` by default.
+#' @param cluster.name an optional string, specify the colname in meta.data for clusters, `cofast.cluster` by default.
+#' @param res a positive real, speficy the resolution parameter for Louvain clustering, default as 0.8.
+#' @param K a positive integer or NULL, specify the number of clusters, default as NULL that indicates not specify the number of clusters.
+#' @param res.start  a positive real, when K is not NULL, starting value of resolution to be searched, default as 0.2.
+#' @param res.end a positive real, when K is not NULL, ending value of resolution to be searched, default as 2.
+#' @param step a positive real, when K is not NULL, step size of resolution to be searched, default as 0.02.
+#' @return return  a revised Seurat object with a new column in meta.data named cluster.name.
+#' @details None
 #' @seealso None
 #' @references None
 #' @export
@@ -656,16 +661,14 @@ search.res.louvain <- function(seu, K, res.start=0.01, res.end=2, step = 0.02){
 #' @examples
 #' library(Seurat)
 #' data(pbmc3k_subset)
-#' pbmc3k_subset <- pdistance(pbmc3k_subset, reduction='ncfm')
-#' df_list_rna <- find.signature.genes(pbmc3k_subset)
-#' dat.sig <- get.top.signature.dat(df_list_rna, ntop=5)
-#' head(dat.sig)
+#' pbmc3k_subset <- AddCluster(pbmc3k_subset, reduction='ncfm')
+#' head(pbmc3k_subset)
 
 AddCluster <- function(seu, reduction='cofast',cluster.name = 'cofast.cluster', res=0.8,  K=NULL, res.start=0.2, res.end=2, step=0.02){
 
   # res.start=0.2; res.end=2; step=0.02
-  q.use <- ncol(Embeddings(seu, reduction='cofast'))
-  seu <- FindNeighbors(seu, reduction = "cofast", dims = 1:q.use)
+  q.use <- ncol(Embeddings(seu, reduction=reduction))
+  seu <- FindNeighbors(seu, reduction = reduction, dims = 1:q.use)
   if(is.null(K)){
     seu <- FindClusters(seu, resolution = res, cluster.name = cluster.name)
   }else{
@@ -709,7 +712,7 @@ AddCluster <- function(seu, reduction='cofast',cluster.name = 'cofast.cluster', 
 #' head(dat.sig)
 
 get.top.signature.dat <- function(df.list, ntop=5, expr.prop.cutoff=0.1) {
-  top5 <- pbapply::pblapply(seq_along(df.list), function(j) {
+  top5 <- pblapply(seq_along(df.list), function(j) {
     #message("j = ", j)
     #j <- 1
     x <- df.list[[j]]
@@ -766,7 +769,7 @@ find.signature.genes <- function(seu, distce.assay='distce', ident=NULL, expr.pr
   names(barcodeList) <- cell_ID
 
 
-  df_co_list <- pbapply::pblapply(seq_along(cell_ID), function(r){
+  df_co_list <- pblapply(seq_along(cell_ID), function(r){
     cell.set.tmp <- barcodeList[[r]]
     df_co_genes.tmp <- gene.activity.score.seu(seu, cell.set=cell.set.tmp,assay=assay,
                                                distce.assay=distce.assay, genes.use=genes.use)
@@ -836,26 +839,6 @@ gene.activity.score <- function (distce, genes.expr.prop, cells.use, cell.set){
 
 ## plot related functions------------------------------------
 
-#' @importFrom ggplot2 ggsave scale_x_reverse scale_y_reverse
-write_fig <- function(
-  plt, filename = "myfigure", dir_name = "Figs", y_reverse = FALSE,
-  x_reverse = FALSE, width = 7, height = 5.5, dpi = 200) {
-  if (y_reverse) {
-    plt <- plt + scale_y_reverse()
-  }
-  if (x_reverse) {
-    plt <- plt + scale_x_reverse()
-  }
-  if (!is.null(filename)) {
-    if (!dir.exists(dir_name)) {
-      dir.create(dir_name)
-    }
-    ggplot2::ggsave(
-      file = paste0("./", dir_name, "/", filename, ".png"), plot = plt,
-      width = width, height = height, units = "in", dpi = dpi)
-  }
-}
-
 
 #' Calculate UMAP projections for coembedding of cells and features
 #' @description Calculate UMAP projections for coembedding of cells and features
@@ -874,6 +857,7 @@ write_fig <- function(
 #' @importFrom  Seurat Loadings Embeddings CreateDimReducObject
 #'
 #' @examples
+#' library(Seurat)
 #' data(pbmc3k_subset)
 #' data(top5_signatures)
 #' \donttest{
@@ -940,6 +924,7 @@ coembedding_umap <- function(seu, reduction, reduction.name, gene.set = NULL,
 #' @importFrom  ggplot2 ggplot aes_string geom_point scale_colour_manual scale_shape_manual theme_classic theme guides
 #' @importFrom  Seurat Loadings  Embeddings Idents
 #' @examples
+#' library(Seurat)
 #' data(pbmc3k_subset)
 #' data(top5_signatures)
 #' coembed_plot(pbmc3k_subset, reduction = "UMAPsig",

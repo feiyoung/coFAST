@@ -9,11 +9,14 @@ pdistance(object, reduction = "cofast", assay.name = "distce", eta = 1e-10)
 \arguments{
 \item{object}{a Seurat object.}
 
-\item{reduction}{a opstional string, dimensional reduction name, `cofast` by default.}
+\item{reduction}{a optional string, dimensional reduction name, `cofast` by default.}
 
-\item{assay.name}{a opstional string, specify the new generated assay name, `distce` by default.}
+\item{assay.name}{a optional string, specify the new generated assay name, `distce` by default.}
 
-\item{eta}{an optional postive real, a quantity to avoid numerical errors. 1e-10 by default.}
+\item{eta}{an optional positive real, a quantity to avoid numerical errors. 1e-10 by default.}
+}
+\value{
+return a revised Seurat object with a assay slot `assay.name`.
 }
 \description{
 Calculate the cell-feature distance matrix based on coembeddings.

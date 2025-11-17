@@ -39,6 +39,7 @@ Calculate UMAP projections for coembedding of cells and features
 None
 }
 \examples{
+library(Seurat)
 data(pbmc3k_subset)
 data(top5_signatures)
 \donttest{

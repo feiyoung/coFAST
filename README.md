@@ -1,6 +1,15 @@
 # coFAST
 
+
 =========================================================================
+<!-- badges: start -->
+
+[![](https://www.r-pkg.org/badges/version-ago/PRECAST)](https://cran.r-project.org/package=coFAST)
+[![](https://cranlogs.r-pkg.org/badges/PRECAST?color=orange)](https://cran.r-project.org/package=coFAST)
+[![](https://cranlogs.r-pkg.org/badges/grand-total/PRECAST?color=orange)](https://cran.r-project.org/package=coFAST)
+<!-- badges: end -->
+
+
 
 coFAST is a spatially-aware cell clustering algorithm with cluster significant assessment. It comprises four key modules: spatially-aware cell-gene co-embedding, cell clustering, signature gene identification, and cluster significant assessment.
 

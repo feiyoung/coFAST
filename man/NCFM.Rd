@@ -32,6 +32,9 @@ NCFM(
 
 \item{var.features}{an optional string vector, specify the variable features used to calculate cell embedding.}
 }
+\value{
+return a revised Seurat object with a new reduction slot reduction.name obtained by NCFM co-embedding method, where reduction.name is default as `ncfm`.
+}
 \description{
 Cell-feature coembedding for scRNA-seq data based on FAST model.
 }

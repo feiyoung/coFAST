@@ -20,11 +20,14 @@ return a data.frame with two columns: the first column is the number of spots in
 Calculate the adjacency matrix given a spatial coordinate matrix with 2-dimension or 3-dimension or more.
 }
 \examples{
+library(Seurat)
 data(CosMx_subset)
 CosMx_subset <- Addcoord2embed(CosMx_subset, coord.name = c("x", "y"))
 Idents(CosMx_subset) <- 'cell_type'
+\donttest{
 dat.sp.score <- AggregationScore(CosMx_subset, reduction.name = 'Spatial')
 print(dat.sp.score)
+}
 
 }
 \references{

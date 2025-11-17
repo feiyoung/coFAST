@@ -21,6 +21,7 @@ Calculate the adjacency matrix given a spatial coordinate matrix with 2-dimensio
 }
 \examples{
 data(CosMx_subset)
+library(Seurat)
 Addcoord2embed(CosMx_subset, coord.name = c("x", "y"))
 
 

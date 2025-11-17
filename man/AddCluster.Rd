@@ -16,33 +16,36 @@ AddCluster(
 )
 }
 \arguments{
-\item{df.list}{a list that is obtained by the function \code{\link{find.signature.genes}}.}
+\item{seu}{a Seurat object.}
 
-\item{ntop}{an optional positive integer, specify the how many top signature genes extracted, default as 5.}
+\item{reduction}{a optional string, dimensional reduction name, `cofast` by default.}
 
-\item{expr.prop.cutoff}{an optional postive real ranging from 0 to 1,  specify cutoff of expression proportion of  features, default as 0.1.}
+\item{cluster.name}{an optional string, specify the colname in meta.data for clusters, `cofast.cluster` by default.}
+
+\item{res}{a positive real, speficy the resolution parameter for Louvain clustering, default as 0.8.}
+
+\item{K}{a positive integer or NULL, specify the number of clusters, default as NULL that indicates not specify the number of clusters.}
+
+\item{res.start}{a positive real, when K is not NULL, starting value of resolution to be searched, default as 0.2.}
+
+\item{res.end}{a positive real, when K is not NULL, ending value of resolution to be searched, default as 2.}
+
+\item{step}{a positive real, when K is not NULL, step size of resolution to be searched, default as 0.02.}
 }
 \value{
-return  a `data.frame` object with four columns: `distance`,`expr.prop`, `label` and `gene`.
+return  a revised Seurat object with a new column in meta.data named cluster.name.
 }
 \description{
 Identify clusters of spots by a shared nearest neighbor (SNN) modularity optimization based on coFAST's embeddings.
 }
 \details{
-Using this funciton, we obtain the top signature genes and organize them into a data.frame. The `row.names` are gene names.
-The colname `distance` means the distance between gene (i.e., VPREB3) and cells with the specific cell type (i.e., B cell),
- which is calculated based on the coembedding of genes and cells in the coembedding space. The distance is smaller, the association between gene and the cell type is stronger.
- The colname `expr.prop` represents the expression proportion of the gene (i.e., VPREB3) within the cell type (i.e., B cell).
- The colname `label` means the cell types and colname `gene` denotes the gene name.
- By the data.frame object, we know `VPREB3` is the one of the top signature gene of B cell.
+None
 }
 \examples{
 library(Seurat)
 data(pbmc3k_subset)
-pbmc3k_subset <- pdistance(pbmc3k_subset, reduction='ncfm')
-df_list_rna <- find.signature.genes(pbmc3k_subset)
-dat.sig <- get.top.signature.dat(df_list_rna, ntop=5)
-head(dat.sig)
+pbmc3k_subset <- AddCluster(pbmc3k_subset, reduction='ncfm')
+head(pbmc3k_subset)
 }
 \references{
 None
