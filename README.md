@@ -4,9 +4,9 @@
 =========================================================================
 <!-- badges: start -->
 
-[![](https://www.r-pkg.org/badges/version-ago/PRECAST)](https://cran.r-project.org/package=coFAST)
-[![](https://cranlogs.r-pkg.org/badges/PRECAST?color=orange)](https://cran.r-project.org/package=coFAST)
-[![](https://cranlogs.r-pkg.org/badges/grand-total/PRECAST?color=orange)](https://cran.r-project.org/package=coFAST)
+[![](https://www.r-pkg.org/badges/version-ago/coFAST)](https://cran.r-project.org/package=coFAST)
+[![](https://cranlogs.r-pkg.org/badges/coFAST?color=orange)](https://cran.r-project.org/package=coFAST)
+[![](https://cranlogs.r-pkg.org/badges/grand-total/coFAST?color=orange)](https://cran.r-project.org/package=coFAST)
 <!-- badges: end -->
 
 
