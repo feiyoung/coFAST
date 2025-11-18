@@ -13,7 +13,7 @@
 
 coFAST is a spatially-aware cell clustering algorithm with cluster significant assessment. It comprises four key modules: spatially-aware cell-gene co-embedding, cell clustering, signature gene identification, and cluster significant assessment.
 
-Check out  our [Package Website](https://feiyoung.github.io/coFAST/index.html) for a more complete description of the methods and analyses. 
+Check out  our our [Cell paper](https://doi.org/10.1016/j.cell.2025.05.035), and [Package Website](https://feiyoung.github.io/coFAST/index.html) for a more complete description of the methods and analyses. 
 
 
 Once the coembeddings of  dataset are estimated by coFAST, the package provides functionality for further data exploration, 
@@ -23,6 +23,11 @@ analysis, and visualization. Users can:
 * Find the signature genes 
 * Visuzlize the coembeddings on UMAP space
 * Visuzlize the signature genes on UMAP space
+
+
+Please see our new paper for more details:
+
+- [Peng Xie^c, Juan Shen^c, Yi Yang^c, Xinrui Wang^c, Wei Liu^c, Hailong Cao^c, Yanying Zheng, Chen Wu, Guangyao Mao, Linjin Chen, Jingjing He, Weiheng Zheng, Zepu Yang, Xiao Zhang, Xu Jiang, Xianfa Yang, Ke Fang, Zhao Zhang, Xin Xue, Xueting Chen, Chaoyi Wang, Xing Liu, Lin Liu, Xuebiao Yao, Naihe Jing, Wei Xie, Jin Liu*, Hua Cao*, Zhuojuan Luo*, Xiaodong Fang*, Chengqi Lin*  (2025), Digital reconstruction of full embryos during early mouse organogenesis. Cell.](https://doi.org/10.1016/j.cell.2025.05.035)
 
 
 # Installation
@@ -35,6 +40,12 @@ analysis, and visualization. Users can:
     install.packages("remotes")
     
     remotes::install_github("feiyoung/coFAST")
+
+Or install the the packages "coFAST" from 'CRAN'
+
+   
+   install.packages("coFAST")
+ 
 
 
 If some dependent packages (such as `scater`) on Bioconductor can not be installed nomrally, use following commands, then run abouve command.
