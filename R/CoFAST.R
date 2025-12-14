@@ -1,6 +1,6 @@
 # generate man files
 # devtools::document()
-# R CMD check --as-cran coFAST_0.1.0.tar.gz
+# R CMD check --as-cran coFAST_0.2.0.tar.gz
 ## usethis::use_data(pbmc3k_subset)
 # pkgdown::build_site()
 # pkgdown::build_home()
@@ -355,7 +355,7 @@ diagnostic.cor.eigs.Seurat <- function(
     assay <- Seurat::DefaultAssay(object)
   }
 
-  X_all <- Seurat::GetAssayData(object = object, slot = slot, assay = assay)
+  X_all <- Seurat::GetAssayData(object = object, layer = slot, assay = assay)
   var.fe.tmp <- get_varfeature_fromSeurat(object, assay=assay)
   if (length(var.fe.tmp) == 0) {
     object <- Seurat::FindVariableFeatures(
@@ -409,7 +409,7 @@ NCFM <- function(
   }
 
   X_all <- as.matrix(Seurat::GetAssayData(
-    object = object, slot = slot, assay = assay))
+    object = object, layer = slot, assay = assay))
   var.fe.tmp <- get_varfeature_fromSeurat(object, assay=assay)
   if (is.null(var.features)) {
     if (length(var.fe.tmp) == 0) {
@@ -423,7 +423,7 @@ NCFM <- function(
   }
   if(slot != 'data'){
     X_data <- as.matrix(Seurat::GetAssayData(
-      object = object, slot = 'data', assay = assay))
+      object = object, layer = 'data', assay = assay))
   }else{
     X_data <- X_all
   }
@@ -517,7 +517,7 @@ coFAST <- function(
   }
   tstart <- Sys.time()
   X_all <- (Seurat::GetAssayData(
-    object = object, slot = slot, assay = assay)) # as.matrix
+    object = object, layer = slot, assay = assay)) # as.matrix
   var.fe.tmp <- get_varfeature_fromSeurat(object, assay=assay)
   if (is.null(var.features)) {
     if (length(var.fe.tmp) == 0) {
@@ -530,7 +530,7 @@ coFAST <- function(
   }
   if(slot != 'data'){
     X_data <- as.matrix(Seurat::GetAssayData(
-      object = object, slot = 'data', assay = assay)) ## ensure X_data always includes all features in seu.
+      object = object, layer = 'data', assay = assay)) ## ensure X_data always includes all features in seu.
   }else{
     X_data <- X_all
   }
@@ -803,13 +803,13 @@ gene.activity.score.seu <- function(seu,  cell.set, distce.assay='distce', assay
   }
   #distce <- seu@assays[[distce.assay]][genes.use, cells.use]
   # genenames <- row.names(GetAssayData(seu, assay = distce.assay, slot= 'data'))
-  distce <- GetAssayData(seu, assay = distce.assay, slot= 'data')[genes.use, cells.use]
+  distce <- GetAssayData(seu, assay = distce.assay, layer= 'data')[genes.use, cells.use]
   if (length(cell.set) > 1) {
-    dat_tmp <- GetAssayData(seu, assay = assay, slot= 'data')[genes.use, cell.set]
+    dat_tmp <- GetAssayData(seu, assay = assay, layer= 'data')[genes.use, cell.set]
     genes.expr.prop <- apply(dat_tmp, 1, function(x) mean(x>0))
     rm(dat_tmp)
   } else {
-    dat_tmp <- GetAssayData(seu, assay = assay, slot= 'data')[genes.use, cell.set]
+    dat_tmp <- GetAssayData(seu, assay = assay, layer= 'data')[genes.use, cell.set]
     genes.expr.prop <- as.vector(as.matrix(dat_tmp) > 0)
     rm(dat_tmp)
   }

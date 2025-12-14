@@ -125,6 +125,9 @@ here we take the version 1.1.0 as an example.
 For an example of typical coFAST usage, please see our [Package Website](https://feiyoung.github.io/coFAST/index.html) for a demonstration and overview of the functions included in coFAST.
 
 # NEWs
+* coFAST version 0.2.0 (2025-12-14): 
+Resolve the issue stemming from the deprecated `slot` parameter in the `GetAssayData()` function within the `SeuratObject` package.
+
 * coFAST version 0.1.0 (2025-03-14)
 
 
